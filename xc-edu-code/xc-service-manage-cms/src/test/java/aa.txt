@@ -1,0 +1,13 @@
+{
+    "_id" : ObjectId("5b3469f794db44269cb2bff1"),
+    "_class" : "com.xuecheng.framework.domain.cms.CmsPage",
+    "siteId" : "5a751fab6abb5044e0d19ea1",
+    "pageName" : "4028e581617f945f01617f9dabc40000.html",
+    "pageAliase" : "课程详情页面测试01",
+    "pageWebPath" : "/course/detail/",
+    "pagePhysicalPath" : "F:\\javaEE\\z-Project\\xc-edu\\xc-ui-pc-static-portal\\static\\course\\detail",
+    "pageType" : "1",
+    "pageCreateTime" : ISODate("2018-02-25T01:37:25.974+0000"),
+    "templateId" : "5d6fa0bdf8974631a41067ca",
+    "dataUrl" : "http://localhost:31200/course/view/4028e581617f945f01617f9dabc40000"
+}

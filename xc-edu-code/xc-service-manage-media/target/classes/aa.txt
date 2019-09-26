@@ -1,0 +1,421 @@
+
+worker_processes  1;
+
+
+
+
+events {
+    worker_connections  1024;
+}
+
+
+http {
+    include       mime.types;
+    default_type  application/octet-stream;
+
+
+
+    sendfile        on;
+
+    keepalive_timeout  65;
+
+upstream cms_server_pool{
+server 127.0.0.1:31001 weight=10;
+}
+upstream img_server_pool{
+server 192.168.25.153:80 weight=10;
+}
+upstream static_server_pool{
+server 127.0.0.1:91 weight=10;
+}
+#前端动态门户
+upstream dynamic_portal_server_pool{
+server 127.0.0.1:10000 weight=10;
+}
+#后台搜索（公开api）
+upstream search_server_pool{
+server 127.0.0.1:40100 weight=10;
+}
+#媒体服务
+upstream video_server_pool{
+server 127.0.0.1:90 weight=10;
+}
+#前端ucenter
+upstream ucenter_server_pool{
+#server 127.0.0.1:7081 weight=10;
+server 127.0.0.1:13000 weight=10;
+}
+
+    server {
+        listen       80;
+        server_name  www.xuecheng.com;
+        ssi on;
+        ssi_silent_errors on;
+
+
+
+location / {
+alias   F:/javaEE/z-Project/xc-edu/xc-ui-pc-static-portal/;
+index  index.html index.htm;
+}
+location /cms/preview/ {
+proxy_pass http://cms_server_pool/cms/preview/;
+}
+location /static/company/ {
+proxy_pass http://static_server_pool;
+}
+location /static/teacher/ {
+proxy_pass http://static_server_pool;
+}
+location /static/stat/ {
+proxy_pass http://static_server_pool;
+}
+location /course/detail/ {
+proxy_pass http://static_server_pool;
+}
+ location /static/img/ {
+ alias F:/javaEE/z-Project/xc-edu/xc-ui-pc-static-portal/img/;
+ }
+ location /static/css/ {
+ alias F:/javaEE/z-Project/xc-edu/xc-ui-pc-static-portal/css/;
+ }
+ location /static/js/ {
+ alias F:/javaEE/z-Project/xc-edu/xc-ui-pc-static-portal/js/;
+ }
+ location /static/plugins/ {
+ alias F:/javaEE/z-Project/xc-edu/xc-ui-pc-static-portal/plugins/;
+ add_header Access-Control-Allow-Origin http://ucenter.xuecheng.com;
+ add_header Access-Control-Allow-Credentials true;
+ add_header Access-Control-Allow-Methods GET;
+ }
+ location /plugins/ {
+ alias F:/javaEE/z-Project/xc-edu/xc-ui-pc-static-portal/plugins/;
+ add_header Access-Control-Allow-Origin http://ucenter.xuecheng.com;
+ add_header Access-Control-Allow-Credentials true;
+ add_header Access-Control-Allow-Methods GET;
+ }
+#前端门户课程搜索
+location ^~ /course/search {
+proxy_pass http://dynamic_portal_server_pool;
+}
+#后端搜索服务
+location /openapi/search/ {
+proxy_pass http://search_server_pool/search/;
+}
+#分类信息
+location /static/category/ {
+proxy_pass http://static_server_pool;
+}
+#开发环境webpack定时加载此文件
+location ^~ /__webpack_hmr {
+proxy_pass http://dynamic_portal_server_pool/__webpack_hmr;
+}
+#开发环境nuxt访问_nuxt
+location ^~ /_nuxt/ {
+proxy_pass http://dynamic_portal_server_pool/_nuxt/;
+}
+
+
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root   html;
+        }
+
+
+
+
+    }
+
+#图片资源管理
+server {
+listen 80;
+server_name img.xuecheng.com;
+location /group1 {
+proxy_pass http://img_server_pool;
+}
+}
+
+#学成网静态资源
+server {
+listen 91;
+server_name localhost;
+#公司信息
+location /static/company/ {
+alias F:/javaEE/z-Project/xc-edu/xc-ui-pc-static-portal/static/company/;
+}
+#老师信息
+location /static/teacher/ {
+alias F:/javaEE/z-Project/xc-edu/xc-ui-pc-static-portal/static/teacher/;
+}
+#统计信息
+location /static/stat/ {
+alias F:/javaEE/z-Project/xc-edu/xc-ui-pc-static-portal/static/stat/;
+}
+#分类信息
+location /static/category/ {
+alias F:/javaEE/z-Project/xc-edu/xc-ui-pc-static-portal/static/category/;
+}
+location /course/detail/ {
+alias F:/javaEE/z-Project/xc-edu/xc-ui-pc-static-portal/static/course/detail/;
+}
+}
+#学成网媒体服务
+server {
+listen 90;
+server_name localhost;
+#视频目录
+location /video/ {
+alias F:/javaEE/z-Project/xc-edu/video/;
+}
+}
+#学成网媒体服务代理
+map $http_origin $origin_list{
+default http://www.xuecheng.com;
+"~http://www.xuecheng.com" http://www.xuecheng.com;
+"~http://ucenter.xuecheng.com" http://ucenter.xuecheng.com;
+}
+#学成网媒体服务代理
+server {
+listen 80;
+server_name video.xuecheng.com;
+location /video {
+proxy_pass http://video_server_pool;
+#add_header Access-Control-Allow-Origin $origin_list;
+add_header Access-Control-Allow-Origin  *;
+add_header Access-Control-Allow-Credentials true;
+add_header Access-Control-Allow-Methods GET,POST,OPTIONS;
+}
+}
+#学成网用户中心
+server {
+listen 80;
+server_name ucenter.xuecheng.com;
+#个人中心
+location / {
+proxy_pass http://ucenter_server_pool;
+}
+}
+
+  
+
+}
+
+
+
+
+worker_processes  1;
+
+
+
+
+events {
+    worker_connections  1024;
+}
+
+
+http {
+    include       mime.types;
+    default_type  application/octet-stream;
+
+
+
+    sendfile        on;
+
+    keepalive_timeout  65;
+
+upstream cms_server_pool{
+server 127.0.0.1:31001 weight=10;
+}
+upstream img_server_pool{
+server 192.168.25.153:80 weight=10;
+}
+upstream static_server_pool{
+server 127.0.0.1:91 weight=10;
+}
+#前端动态门户
+upstream dynamic_portal_server_pool{
+server 127.0.0.1:10000 weight=10;
+}
+#后台搜索（公开api）
+upstream search_server_pool{
+server 127.0.0.1:40100 weight=10;
+}
+#媒体服务
+upstream video_server_pool{
+server 127.0.0.1:90 weight=10;
+}
+#前端ucenter
+upstream ucenter_server_pool{
+#server 127.0.0.1:7081 weight=10;
+server 127.0.0.1:13000 weight=10;
+}
+
+    server {
+        listen       80;
+        server_name  www.xuecheng.com;
+        ssi on;
+        ssi_silent_errors on;
+
+
+
+location / {
+alias   F:/javaEE/z-Project/xc-edu/xc-ui-pc-static-portal/;
+index  index.html index.htm;
+}
+location /cms/preview/ {
+proxy_pass http://cms_server_pool/cms/preview/;
+}
+location /static/company/ {
+proxy_pass http://static_server_pool;
+}
+location /static/teacher/ {
+proxy_pass http://static_server_pool;
+}
+location /static/stat/ {
+proxy_pass http://static_server_pool;
+}
+location /course/detail/ {
+proxy_pass http://static_server_pool;
+}
+ location /static/img/ {
+ alias F:/javaEE/z-Project/xc-edu/xc-ui-pc-static-portal/img/;
+ }
+ location /static/css/ {
+ alias F:/javaEE/z-Project/xc-edu/xc-ui-pc-static-portal/css/;
+ }
+ location /static/js/ {
+ alias F:/javaEE/z-Project/xc-edu/xc-ui-pc-static-portal/js/;
+ }
+ location /static/plugins/ {
+ alias F:/javaEE/z-Project/xc-edu/xc-ui-pc-static-portal/plugins/;
+ add_header Access-Control-Allow-Origin http://ucenter.xuecheng.com;
+ add_header Access-Control-Allow-Credentials true;
+ add_header Access-Control-Allow-Methods GET;
+ }
+ location /plugins/ {
+ alias F:/javaEE/z-Project/xc-edu/xc-ui-pc-static-portal/plugins/;
+ add_header Access-Control-Allow-Origin http://ucenter.xuecheng.com;
+ add_header Access-Control-Allow-Credentials true;
+ add_header Access-Control-Allow-Methods GET;
+ }
+#前端门户课程搜索
+location ^~ /course/search {
+proxy_pass http://dynamic_portal_server_pool;
+}
+#后端搜索服务
+location /openapi/search/ {
+proxy_pass http://search_server_pool/search/;
+}
+#分类信息
+location /static/category/ {
+proxy_pass http://static_server_pool;
+}
+#开发环境webpack定时加载此文件
+location ^~ /__webpack_hmr {
+proxy_pass http://dynamic_portal_server_pool/__webpack_hmr;
+}
+#开发环境nuxt访问_nuxt
+location ^~ /_nuxt/ {
+proxy_pass http://dynamic_portal_server_pool/_nuxt/;
+}
+
+
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root   html;
+        }
+
+
+
+
+    }
+
+#图片资源管理
+server {
+listen 80;
+server_name img.xuecheng.com;
+location /group1 {
+proxy_pass http://img_server_pool;
+}
+}
+
+#学成网静态资源
+server {
+listen 91;
+server_name localhost;
+#公司信息
+location /static/company/ {
+alias F:/javaEE/z-Project/xc-edu/xc-ui-pc-static-portal/static/company/;
+}
+#老师信息
+location /static/teacher/ {
+alias F:/javaEE/z-Project/xc-edu/xc-ui-pc-static-portal/static/teacher/;
+}
+#统计信息
+location /static/stat/ {
+alias F:/javaEE/z-Project/xc-edu/xc-ui-pc-static-portal/static/stat/;
+}
+#分类信息
+location /static/category/ {
+alias F:/javaEE/z-Project/xc-edu/xc-ui-pc-static-portal/static/category/;
+}
+location /course/detail/ {
+alias F:/javaEE/z-Project/xc-edu/xc-ui-pc-static-portal/static/course/detail/;
+}
+}
+#学成网媒体服务
+server {
+listen 90;
+server_name localhost;
+#视频目录
+location /video/ {
+alias F:/javaEE/z-Project/xc-edu/video/;
+}
+}
+#学成网媒体服务代理
+map $http_origin $origin_list{
+default http://www.xuecheng.com;
+"~http://www.xuecheng.com" http://www.xuecheng.com;
+"~http://ucenter.xuecheng.com" http://ucenter.xuecheng.com;
+}
+#学成网媒体服务代理
+server {
+listen 80;
+server_name video.xuecheng.com;
+location /video {
+proxy_pass http://video_server_pool;
+add_header Access-Control-Allow-Origin $origin_list;
+#add_header Access-Control-Allow-Origin  *;
+add_header Access-Control-Allow-Credentials true;
+add_header Access-Control-Allow-Methods GET;
+}
+}
+#学成网用户中心
+server {
+listen 80;
+server_name ucenter.xuecheng.com;
+#个人中心
+location / {
+proxy_pass http://ucenter_server_pool;
+}
+}
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

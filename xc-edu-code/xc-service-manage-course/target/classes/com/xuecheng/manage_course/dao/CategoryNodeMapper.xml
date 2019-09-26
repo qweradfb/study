@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xuecheng.manage_course.dao.CategoryNodeMapper">
+    <select id="findCategoryNode" resultMap="getCategoryNode">
+        SELECT
+          t1.id AS one_id,
+          t1.name AS one_name,
+          t1.label AS one_label,
+          t2.id AS two_id,
+          t2.name AS two_name,
+          t2.label AS two_label,
+          t3.id AS three_id,
+          t3.name AS three_name,
+          t3.label AS three_label
+        FROM
+          category AS t1
+          LEFT JOIN category AS t2
+            ON t1.id = t2.parentid
+          LEFT JOIN category AS t3
+            ON t2.id = t3.parentid
+        WHERE t1.id = '1'
+        ORDER BY t1.orderby,
+          t2.orderby,
+          t3.orderby
+    </select>
+
+    <resultMap id="getCategoryNode" type="com.xuecheng.framework.domain.course.ext.CategoryNode">
+        <id column="one_id" property="id"></id>
+        <result column="one_name" property="name"></result>
+        <result column="one_label" property="label"></result>
+        <collection property="children" ofType="com.xuecheng.framework.domain.course.ext.CategoryNode">
+            <id column="two_id" property="id"></id>
+            <result column="two_name" property="name"></result>
+            <result column="two_label" property="label"></result>
+            <collection property="children" ofType="com.xuecheng.framework.domain.course.ext.CategoryNode">
+                <id column="three_id" property="id"></id>
+                <result column="three_name" property="name"></result>
+                <result column="three_label" property="label"></result>
+            </collection>
+        </collection>
+    </resultMap>
+</mapper>

@@ -1,0 +1,63 @@
+
+
+
+worker_processes  1;
+
+events {
+    worker_connections  1024;
+}
+
+
+http {
+    include       mime.types;
+    default_type  application/octet-stream;
+
+
+
+    sendfile        on;
+
+    keepalive_timeout  65;
+
+    upstream storage_server_group1{
+       server 192.168.25.153:80 weight=10;
+       server 192.168.25.153:80 weight=10;
+    }
+    upstream storage_server_group2{
+       server 192.168.25.153:80 weight=10;
+       server 192.168.25.153:80 weight=10;
+    }
+
+    server {
+       listen 80;
+       server_name ccc.test.com;
+       location /group1{
+           proxy_redirect off;
+           proxy_set_header Host $host;
+           proxy_set_header X-Real-IP $remote_addr;
+           proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+           proxy_pass http://storage_server_group1;
+       }
+       location /group2{
+           proxy_redirect off;
+           proxy_set_header Host $host;
+           proxy_set_header X-Real-IP $remote_addr;
+           proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+           proxy_pass http://storage_server_group2;
+       }
+    }
+
+}
+
+server {
+listen 80;
+server_name 192.168.25.153;
+location /group1/M00/{
+root /home/FastDFS/fdfs_storage/data;
+ngx_FastDFS_module;
+}
+}
+
+
+
+
+/usr/local/nginx/sbin/nginx -c /usr/local/nginx/conf/nginx-fdfs.conf
